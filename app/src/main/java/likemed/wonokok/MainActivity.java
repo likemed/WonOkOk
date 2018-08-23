@@ -209,7 +209,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
                 super.onReceivedError(view, errorCode, description, failingUrl);
-
                 if(errorCode== -2) {
                     mWebView.loadUrl("about:blank"); // 빈페이지 출력
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -258,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
             } else if ("bank".equals(code)) {
                 mWebView.loadUrl("http://wonokok.dothome.co.kr/m_bank.php");
             } else {
-                mWebView.loadUrl("http://wonokok3.dothome.co.kr/m_outcome.php");
+                mWebView.loadUrl("http://wonokok.dothome.co.kr/m_outcome.php");
             }
         }
     }
