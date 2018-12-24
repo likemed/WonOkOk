@@ -1,7 +1,6 @@
 package likemed.wonokok;
 
 import android.app.Activity;
-import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -53,54 +52,59 @@ public class MainActivity extends AppCompatActivity {
                 final String output = request();
                 handler.post(new Runnable() {
                     public void run() {
-                        String[] no_output = output.split("@");
-                        int total_count = Integer.parseInt(no_output[0]);
-                        int output_count = Integer.parseInt(no_output[1]);
-                        int input_count = Integer.parseInt(no_output[2]);
 
-                        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-                        if (total_count>0) {
+                        if(output == null || output.equals("")) {
+                        } else {
+                            String[] no_output = output.split("@");
+                            int total_count = Integer.parseInt(no_output[0]);
+                            int output_count = Integer.parseInt(no_output[1]);
+                            int input_count = Integer.parseInt(no_output[2]);
 
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                /* Create or update. */
-                                NotificationChannel channel = new NotificationChannel("1", "WonOkOk", NotificationManager.IMPORTANCE_MIN);
-                                notificationManager.createNotificationChannel(channel);
+                            NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                            if (total_count > 0) {
+
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                    /* Create or update. */
+                                    NotificationChannel channel = new NotificationChannel("1", "WonOkOk", NotificationManager.IMPORTANCE_MIN);
+                                    notificationManager.createNotificationChannel(channel);
+                                }
+                                Intent appcall = getPackageManager().getLaunchIntentForPackage("likemed.wonokok");
+                                appcall.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+                                if (output_count > 0) {
+                                    appcall.putExtra("code", "sms");
+                                } else {
+                                    appcall.putExtra("code", "bank");
+                                }
+
+                                PendingIntent pendingIntent = PendingIntent.getActivity(MainActivity.this, 0, appcall, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                                NotificationCompat.Builder builder = new NotificationCompat.Builder(MainActivity.this, "1");
+                                builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), android.R.drawable.star_on));
+                                builder.setSmallIcon(android.R.drawable.star_on);
+                                builder.setTicker("WonOkOk (" + total_count + ")");
+                                builder.setContentTitle("WonOkOk (" + total_count + ")");
+                                builder.setContentText("총 " + total_count + "개 항목(지출:" + output_count + "/수입:" + input_count + ")이 입력 대기 중입니다.");
+                                builder.setWhen(System.currentTimeMillis());
+                                builder.setDefaults(NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_VIBRATE);
+                                builder.setContentIntent(pendingIntent);
+                                builder.setAutoCancel(true);
+                                builder.setNumber(total_count);
+                                builder.setPriority(NotificationCompat.PRIORITY_MIN);
+                                notificationManager.notify(0, builder.build());
+
+                                Intent intent_badge = new Intent("android.intent.action.BADGE_COUNT_UPDATE");
+                                intent_badge.putExtra("badge_count_package_name", getComponentName().getPackageName());
+                                intent_badge.putExtra("badge_count_class_name", getComponentName().getClassName());
+                                intent_badge.putExtra("badge_count", total_count);
+                                sendBroadcast(intent_badge);
+
+                            } else if (total_count == 0) {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                    notificationManager.deleteNotificationChannel("1");
+                                }
+                                notificationManager.cancel(0);
                             }
-                            Intent appcall = getPackageManager().getLaunchIntentForPackage("likemed.wonokok");
-                            appcall.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_CLEAR_TOP);
-
-                            if (output_count>0) {
-                                appcall.putExtra("code", "sms");
-                            } else {
-                                appcall.putExtra("code", "bank");
-                            }
-
-                            PendingIntent pendingIntent = PendingIntent.getActivity(MainActivity.this, 0, appcall, PendingIntent.FLAG_UPDATE_CURRENT);
-
-                            NotificationCompat.Builder builder = new NotificationCompat.Builder(MainActivity.this, "1");
-                            builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), android.R.drawable.star_on));
-                            builder.setSmallIcon(android.R.drawable.star_on);
-                            builder.setTicker("WonOkOk (" + total_count + ")");
-                            builder.setContentTitle("WonOkOk (" + total_count + ")");
-                            builder.setContentText("총 " + total_count + "개 항목(지출:" + output_count + "/수입:" + input_count + ")이 입력 대기 중입니다.");
-                            builder.setWhen(System.currentTimeMillis());
-                            builder.setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE);
-                            builder.setContentIntent(pendingIntent);
-                            builder.setAutoCancel(true);
-                            builder.setPriority(Notification.PRIORITY_MIN);
-                            builder.setNumber(total_count);
-                            notificationManager.notify(0, builder.build());
-
-                            Intent intent_badge = new Intent("android.intent.action.BADGE_COUNT_UPDATE");
-                            intent_badge.putExtra("badge_count_package_name", getComponentName().getPackageName());
-                            intent_badge.putExtra("badge_count_class_name", getComponentName().getClassName());
-                            intent_badge.putExtra("badge_count", total_count);
-                            sendBroadcast(intent_badge);
-                        } else if (total_count==0) {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                notificationManager.deleteNotificationChannel("1");
-                            }
-                            notificationManager.cancel(0);
                         }
                     }
                 });
